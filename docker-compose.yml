@@ -1,0 +1,32 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sim
+      POSTGRES_PASSWORD: sim
+      POSTGRES_DB: sim
+    volumes:
+      - sim_db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      SIM_MODEL: ${SIM_MODEL:-claude-sonnet-4-6}
+      DATABASE_URL: postgresql://sim:sim@db:5432/sim
+    depends_on:
+      - db
+    ports:
+      - "8000:8000"
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "3050:80"
+volumes:
+  sim_db_data:
