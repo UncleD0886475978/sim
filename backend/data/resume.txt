@@ -1,0 +1,66 @@
+SIMEON KORKPOR
+Waynesboro, PA  •  484-201-4333  •  simeonderick8@gmail.com
+
+PROFESSIONAL SUMMARY
+Cloud infrastructure professional with 3+ years of experience supporting AWS environments, enterprise systems, and production infrastructure. Currently supporting AWS cloud infrastructure at Amazon Web Services, working across EC2, S3, and compute environments, resolving system and connectivity issues, and maintaining strict SLA and uptime targets. Previously maintained 99.9 percent system availability as an Associate Technical Operations Analyst at ADP, supporting enterprise production infrastructure and cross-team incident response. Holds a Bachelor of Science in Cloud Computing, an AAS in Information Technology and Security, and a CompTIA Cloud+ certification, and is AWS Certified Solutions Architect Associate certified. Skilled in AWS core services, Linux and Windows administration, networking, cybersecurity fundamentals, and ITSM platforms.
+
+CORE COMPETENCIES
+AWS Cloud Infrastructure (EC2, S3, Compute) • Cloud Architecture Fundamentals • Linux & Windows Server Administration • Networking (DNS, DHCP, TCP/IP, Routing & Switching) • Cybersecurity & Vulnerability Management • Incident & Ticket Management (ServiceNow, Jira) • Docker, PowerShell, Bash, CI/CD • Virtualization & Storage (SAN) • System Monitoring & Troubleshooting • ITSM Documentation & Process Improvement • AWS Certified Solutions Architect Associate
+
+PROFESSIONAL EXPERIENCE
+
+Hardware Technician
+Amazon Web Services (AWS) — Virginia | 05/2026 – Present
+- Support AWS cloud infrastructure across EC2 Compute, S3, and enterprise hosts, resolving system-level issues and maintaining uptime for customer-facing cloud services.
+- Diagnose and resolve system configuration and boot failures, including firmware validation and testing, to restore full operational status.
+- Support infrastructure for high-performance computing workloads, including liquid cooling systems, coordinating with engineering teams on system reliability and performance.
+- Troubleshoot system failures related to memory, storage, and processing resources as part of broader infrastructure support workflows.
+- Maintain system security and access compliance, including credential and key management, to protect cloud infrastructure integrity.
+- Perform network troubleshooting to resolve connectivity issues between systems and cloud services.
+- Manage and resolve technical support tickets using AWS internal tools and ticketing systems, consistently meeting SLA targets.
+- Support cloud infrastructure operations in a 24x7 enterprise environment, contributing to reliable service delivery for AWS customers.
+
+Associate Technical Operations Analyst (Data Center)
+Automatic Data Processing (ADP) — Sioux Falls, SD | 09/2023 – 05/2026
+- Monitored and resolved infrastructure incidents across enterprise production environments, reducing mean time to resolution and maintaining 99.9 percent system availability.
+- Supported enterprise servers, storage arrays, and network devices, minimizing downtime through proactive monitoring and rapid incident response.
+- Deployed and configured infrastructure for system expansions, supporting capacity growth and readiness for new workloads.
+- Collaborated with network engineering teams to diagnose and resolve complex connectivity issues, improving first-time fix rates.
+- Managed server lifecycle using OpenManage Enterprise (OME), improving deployment readiness and configuration consistency across environments.
+- Conducted preventive maintenance and system health checks, reducing failure rates and supporting infrastructure reliability.
+- Documented incidents, changes, and operational procedures aligned with ITSM best practices, improving audit readiness and team handoffs.
+- Supported cross-functional teams during critical outages and infrastructure upgrades in a 24x7 operations environment.
+
+Associate Technical Operations Analyst
+Apex Systems (Contract for ADP) — Sioux Falls, SD | 05/2023 – 09/2023
+- Maintained high-availability data center operations supporting enterprise-scale production systems.
+- Diagnosed and remediated hardware, operating system, and network-related issues to minimize service disruptions.
+- Collaborated on server deployments and infrastructure implementation projects.
+- Maintained comprehensive operational documentation and efficient ticketing workflows.
+- Partnered with system administrators and network engineers to enhance service consistency.
+
+Information Technology Volunteer
+Dakota Young Stars Inc. — Sioux Falls, SD | 01/2020 – Present
+- Secure organizational systems and electronic data through proactive security measures and best practices.
+- Design and implement customized IT solutions tailored to organizational needs.
+- Deliver web development, software installation, and system configuration services.
+- Support security architecture, backup strategies, and system design enhancements.
+
+EDUCATION
+Bachelor of Science, Cloud Computing — Purdue University Global (November 2023 – October 2025)
+Associate of Applied Science, Information Technology and Security — Southeast Technical College (January 2021 – May 2023)
+
+CERTIFICATIONS AND TRAINING
+CompTIA Cloud+ (CV0-004) — CompTIA | Issued: March 2026 | Valid Through: March 2029
+AWS Certified Solutions Architect Associate (SAA-C03) — Amazon Web Services | Issued: August 17, 2026
+Scrum Master Certified (SMC) — Six Sigma Global Institute
+
+TECHNICAL PROFICIENCIES
+Cloud Platforms: AWS, GCP, Docker
+Operating Systems: Linux (Ubuntu, CentOS, Red Hat Enterprise Linux), Windows Server
+Networking: DNS, DHCP, Firewalls, Routing and Switching, TCP/IP
+Databases: Oracle, MariaDB, MySQL
+Hardware & Cooling: Server hardware diagnostics, firmware validation, liquid cooling systems, GPU accelerator hosts
+Security Tools: Nessus, OpenVAS, Nmap, LanGuard
+DevOps & Scripting: PowerShell, Bash, CI/CD Pipelines, Git
+ITSM Platforms: ServiceNow, Jira, Rally, Confluence, VersionOne

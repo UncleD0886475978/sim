@@ -26,7 +26,7 @@ app = FastAPI(title="Sim API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # tighten this once you're past local dev
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -66,6 +66,21 @@ async def shutdown():
 class NewMessage(BaseModel):
     conversation_id: str | None = None
     content: str
+
+
+class MayaRequest(BaseModel):
+    job_posting: str
+    company_name: str | None = None
+    tone: str | None = "professional"
+
+
+def load_resume() -> str:
+    resume_path = os.path.join(os.path.dirname(__file__), "data", "resume.txt")
+    try:
+        with open(resume_path, "r") as f:
+            return f.read()
+    except FileNotFoundError:
+        return ""
 
 
 @app.get("/api/conversations")
@@ -138,3 +153,43 @@ async def chat(msg: NewMessage):
 @app.get("/api/health")
 async def health():
     return {"status": "ok", "model": MODEL, "time": datetime.now(timezone.utc).isoformat()}
+
+
+@app.post("/api/maya/cover-letter")
+async def maya_cover_letter(req: MayaRequest):
+    if not ANTHROPIC_API_KEY:
+        raise HTTPException(500, "ANTHROPIC_API_KEY is not configured on the server")
+
+    resume_text = load_resume()
+    if not resume_text:
+        raise HTTPException(500, "No resume on file for Maya to reference")
+
+    company_line = f" for {req.company_name}" if req.company_name else ""
+
+    maya_system_prompt = (
+        "You are Maya, an assistant that writes tailored, honest, specific cover letters. "
+        "You are given a candidate's resume and a job posting. Write a cover letter that: "
+        "(1) is grounded only in real experience from the resume, never invented; "
+        "(2) directly connects 2-3 concrete resume achievements to the job posting's stated requirements; "
+        "(3) is concise (under 350 words), professional, and avoids generic filler phrases; "
+        "(4) uses a natural, confident, first-person voice. "
+        "Do not fabricate metrics, employers, or skills not present in the resume."
+    )
+
+    user_prompt = (
+        f"CANDIDATE RESUME:\n{resume_text}\n\n"
+        f"JOB POSTING{company_line}:\n{req.job_posting}\n\n"
+        f"Write a tailored cover letter in a {req.tone} tone."
+    )
+
+    response = await client.messages.create(
+        model=MODEL,
+        max_tokens=1024,
+        system=maya_system_prompt,
+        messages=[{"role": "user", "content": user_prompt}],
+    )
+    letter = "".join(
+        block.text for block in response.content if block.type == "text"
+    )
+
+    return {"cover_letter": letter}

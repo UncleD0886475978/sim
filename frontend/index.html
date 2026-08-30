@@ -110,11 +110,73 @@
   }
   #send:disabled { opacity: 0.5; cursor: not-allowed; }
   code { background: #1f2430; padding: 2px 5px; border-radius: 4px; font-size: 13px; }
+  .nav-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+  .nav-tab {
+    flex: 1;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 6px;
+    padding: 8px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .nav-tab.active { background: var(--accent); color: #0f1115; border-color: var(--accent); font-weight: 600; }
+  #maya-view { display: none; flex: 1; flex-direction: column; padding: 24px; overflow-y: auto; }
+  #maya-view h2 { color: var(--accent); margin-top: 0; }
+  #maya-view label { display: block; margin: 16px 0 6px; font-size: 13px; color: var(--muted); }
+  #maya-view textarea, #maya-view input {
+    width: 100%;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 14px;
+    font-family: inherit;
+  }
+  #maya-view textarea { min-height: 160px; resize: vertical; }
+  #maya-generate {
+    margin-top: 16px;
+    background: var(--accent);
+    color: #0f1115;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-weight: 600;
+    cursor: pointer;
+    align-self: flex-start;
+  }
+  #maya-generate:disabled { opacity: 0.5; cursor: not-allowed; }
+  #maya-result {
+    margin-top: 20px;
+    background: var(--assistant-bubble);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    white-space: pre-wrap;
+    line-height: 1.6;
+    display: none;
+  }
+  #maya-copy {
+    margin-top: 10px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 6px;
+    padding: 8px 14px;
+    cursor: pointer;
+    display: none;
+  }
 </style>
 </head>
 <body>
   <div id="sidebar">
     <h1>Sim</h1>
+    <div class="nav-tabs">
+      <button class="nav-tab active" id="tab-chat">Chat</button>
+      <button class="nav-tab" id="tab-maya">Maya</button>
+    </div>
     <button id="new-chat">+ New chat</button>
     <div id="conversations"></div>
   </div>
@@ -124,6 +186,17 @@
       <textarea id="input" rows="1" placeholder="Message Sim..."></textarea>
       <button id="send">Send</button>
     </div>
+  </div>
+  <div id="maya-view">
+    <h2>Maya — Cover Letter Assistant</h2>
+    <p style="color: var(--muted); font-size: 14px;">Paste a job posting below. Maya drafts a cover letter tailored to Simeon's resume.</p>
+    <label for="maya-company">Company name (optional)</label>
+    <input id="maya-company" type="text" placeholder="e.g. Microsoft" />
+    <label for="maya-posting">Job posting</label>
+    <textarea id="maya-posting" placeholder="Paste the full job posting here..."></textarea>
+    <button id="maya-generate">Generate cover letter</button>
+    <div id="maya-result"></div>
+    <button id="maya-copy">Copy to clipboard</button>
   </div>
 
 <script>
@@ -215,6 +288,83 @@ inputEl.addEventListener("keydown", (e) => {
 });
 
 loadConversations();
+
+// ---- Tab switching ----
+const tabChat = document.getElementById("tab-chat");
+const tabMaya = document.getElementById("tab-maya");
+const mainView = document.getElementById("main");
+const mayaView = document.getElementById("maya-view");
+const sidebarNewChat = document.getElementById("new-chat");
+const sidebarConvList = document.getElementById("conversations");
+
+tabChat.onclick = () => {
+  tabChat.classList.add("active");
+  tabMaya.classList.remove("active");
+  mainView.style.display = "flex";
+  mayaView.style.display = "none";
+  sidebarNewChat.style.display = "block";
+  sidebarConvList.style.display = "block";
+};
+
+tabMaya.onclick = () => {
+  tabMaya.classList.add("active");
+  tabChat.classList.remove("active");
+  mainView.style.display = "none";
+  mayaView.style.display = "flex";
+  sidebarNewChat.style.display = "none";
+  sidebarConvList.style.display = "none";
+};
+
+// ---- Maya ----
+const mayaCompanyEl = document.getElementById("maya-company");
+const mayaPostingEl = document.getElementById("maya-posting");
+const mayaGenerateBtn = document.getElementById("maya-generate");
+const mayaResultEl = document.getElementById("maya-result");
+const mayaCopyBtn = document.getElementById("maya-copy");
+
+mayaGenerateBtn.onclick = async () => {
+  const posting = mayaPostingEl.value.trim();
+  if (!posting) return;
+
+  mayaGenerateBtn.disabled = true;
+  mayaGenerateBtn.textContent = "Generating...";
+  mayaResultEl.style.display = "none";
+  mayaCopyBtn.style.display = "none";
+
+  try {
+    const res = await fetch(`${API}/api/maya/cover-letter`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        job_posting: posting,
+        company_name: mayaCompanyEl.value.trim() || null,
+      }),
+    });
+
+    if (!res.ok) {
+      mayaResultEl.textContent = `Error: ${res.status} ${res.statusText}`;
+      mayaResultEl.style.display = "block";
+      return;
+    }
+
+    const data = await res.json();
+    mayaResultEl.textContent = data.cover_letter;
+    mayaResultEl.style.display = "block";
+    mayaCopyBtn.style.display = "inline-block";
+  } catch (err) {
+    mayaResultEl.textContent = "Error: " + err.message;
+    mayaResultEl.style.display = "block";
+  }
+
+  mayaGenerateBtn.disabled = false;
+  mayaGenerateBtn.textContent = "Generate cover letter";
+};
+
+mayaCopyBtn.onclick = () => {
+  navigator.clipboard.writeText(mayaResultEl.textContent);
+  mayaCopyBtn.textContent = "Copied!";
+  setTimeout(() => (mayaCopyBtn.textContent = "Copy to clipboard"), 1500);
+};
 </script>
 </body>
 </html>
