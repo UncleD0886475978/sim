@@ -10,23 +10,73 @@ services:
       - sim_db_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+
+  # Local model: Gemma 4 served by llama.cpp's llama-server.
+  # Official image (verified in llama.cpp's docs/docker.md):
+  #   ghcr.io/ggml-org/llama.cpp:server   (entrypoint is llama-server)
+  # The -hf flag downloads the GGUF from Hugging Face on first start
+  # (ggml-org/gemma-4-E4B-it-GGUF, Q8_0 ≈ 8.59 GB) into the cache volume
+  # below, so later starts are fast and work offline once downloaded.
+  model:
+    image: ghcr.io/ggml-org/llama.cpp:server
+    restart: unless-stopped
+    command:
+      - "-hf"
+      - "ggml-org/gemma-4-E4B-it-GGUF:${GEMMA_QUANT:-Q8_0}"
+      - "--alias"
+      - "${SIM_MODEL:-gemma-4-E4B-it}"
+      - "--host"
+      - "0.0.0.0"
+      - "--port"
+      - "8080"
+      - "-c"
+      - "8192"
+    environment:
+      # Hugging Face download cache lives inside the named volume below.
+      HF_HOME: /root/.cache/huggingface
+    volumes:
+      # Persists the downloaded model + caches across restarts.
+      # Covers both the HF cache and llama.cpp's own cache directory.
+      - sim_model_cache:/root/.cache
+    expose:
+      # Internal only: the backend reaches the model at http://model:8080.
+      # Not published to the host by default. If you want to poke the model
+      # API from the host, add:  ports: ["8080:8080"]
+      - "8080"
+    healthcheck:
+      # llama-server serves GET /health (200 once the model is loaded).
+      # Uses bash's /dev/tcp so it does not depend on curl/wget in the image.
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8080 && printf \"GET /health HTTP/1.0\\r\\n\\r\\n\" >&3 && head -c 20 <&3 | grep -q 200'"]
+      interval: 30s
+      timeout: 10s
+      retries: 20
+      # First start downloads ~8.6 GB (Q8_0) before /health can pass.
+      start_period: 600s
+
   backend:
     build: ./backend
     restart: unless-stopped
     environment:
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
-      SIM_MODEL: ${SIM_MODEL:-claude-sonnet-4-6}
+      # Local model — no API key needed. LLM_API_KEY is optional and only
+      # sent as a Bearer header if you set it.
+      LLM_BASE_URL: http://model:8080/v1
+      SIM_MODEL: ${SIM_MODEL:-gemma-4-E4B-it}
+      LLM_API_KEY: ${LLM_API_KEY:-}
       DATABASE_URL: postgresql://sim:sim@db:5432/sim
     depends_on:
       - db
+      - model
     ports:
       - "8000:8000"
+
   frontend:
     build: ./frontend
     restart: unless-stopped
     depends_on:
       - backend
     ports:
-      - "3050:80"
+      - "3000:80"
+
 volumes:
   sim_db_data:
+  sim_model_cache:

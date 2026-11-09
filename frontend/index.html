@@ -3,200 +3,371 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Sim</title>
+<title>SimAI — Local AI Assistant</title>
 <style>
   :root {
-    --bg: #0f1115;
-    --panel: #171a21;
-    --border: #262b36;
-    --text: #e6e8ec;
-    --muted: #8b93a3;
-    --accent: #6c8cff;
-    --user-bubble: #1f2430;
-    --assistant-bubble: #12151b;
+    --bg: #0b0e14;
+    --panel: #131722;
+    --panel-2: #171c2a;
+    --border: #242b3d;
+    --border-soft: #1d2333;
+    --text: #eef1f7;
+    --muted: #939db3;
+    --muted-2: #6b7590;
+    --accent: #7c8cff;
+    --accent-2: #a78bfa;
+    --accent-3: #38d6c4;
+    --gradient: linear-gradient(135deg, #7c8cff 0%, #a78bfa 55%, #38d6c4 130%);
+    --user-bubble: linear-gradient(135deg, #5b6ee6 0%, #8b5cf6 100%);
+    --assistant-bubble: #141927;
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    --radius: 16px;
   }
   * { box-sizing: border-box; }
+  html, body { height: 100%; }
   body {
     margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    background:
+      radial-gradient(900px 500px at 85% -10%, rgba(124, 140, 255, 0.14), transparent 60%),
+      radial-gradient(700px 450px at -10% 110%, rgba(56, 214, 196, 0.08), transparent 60%),
+      var(--bg);
     color: var(--text);
     height: 100vh;
     display: flex;
+    overflow: hidden;
   }
+  ::-webkit-scrollbar { width: 9px; height: 9px; }
+  ::-webkit-scrollbar-thumb { background: #2a3247; border-radius: 99px; border: 2px solid transparent; background-clip: content-box; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  button { font-family: inherit; transition: transform .12s ease, box-shadow .12s ease, background .15s ease, opacity .15s ease; }
+  button:hover { transform: translateY(-1px); }
+  button:active { transform: translateY(0); }
+  button:focus-visible, textarea:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* ---------- Sidebar ---------- */
   #sidebar {
-    width: 260px;
-    background: var(--panel);
-    border-right: 1px solid var(--border);
+    width: 272px;
+    flex-shrink: 0;
+    background: linear-gradient(180deg, rgba(23, 28, 42, 0.92), rgba(15, 18, 27, 0.92));
+    border-right: 1px solid var(--border-soft);
     display: flex;
     flex-direction: column;
-    padding: 12px;
+    padding: 18px 14px 14px;
+    backdrop-filter: blur(8px);
   }
-  #sidebar h1 {
-    font-size: 18px;
-    margin: 8px 8px 16px;
-    color: var(--accent);
+  .brand { display: flex; align-items: center; gap: 12px; padding: 2px 6px 18px; }
+  .brand-mark {
+    width: 42px; height: 42px; flex-shrink: 0;
+    border-radius: 13px;
+    background: var(--gradient);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 21px; font-weight: 800; color: #0b0e14;
+    box-shadow: 0 6px 18px rgba(124, 140, 255, 0.4);
   }
-  #new-chat {
-    background: var(--accent);
-    color: #0f1115;
+  .brand-name { font-size: 19px; font-weight: 700; letter-spacing: .2px; line-height: 1.1; }
+  .brand-sub { font-size: 11.5px; color: var(--muted); margin-top: 3px; display: flex; align-items: center; gap: 6px; }
+  .status-dot { width: 7px; height: 7px; border-radius: 99px; background: #34d399; box-shadow: 0 0 8px #34d399; display: inline-block; }
+  .nav-tabs { display: flex; gap: 6px; margin-bottom: 12px; background: var(--bg); border: 1px solid var(--border-soft); border-radius: 11px; padding: 4px; }
+  .nav-tab {
+    flex: 1;
+    background: transparent;
     border: none;
+    color: var(--muted);
     border-radius: 8px;
-    padding: 10px;
+    padding: 8px;
+    cursor: pointer;
+    font-size: 13px;
     font-weight: 600;
-    cursor: pointer;
-    margin-bottom: 12px;
   }
-  #conversations { overflow-y: auto; flex: 1; }
-  .conv-item {
-    padding: 10px 8px;
-    border-radius: 6px;
-    cursor: pointer;
+  .nav-tab:hover { transform: none; color: var(--text); }
+  .nav-tab.active { background: var(--gradient); color: #0b0e14; box-shadow: 0 4px 12px rgba(124, 140, 255, 0.35); }
+  #new-chat {
+    background: var(--gradient);
+    color: #0b0e14;
+    border: none;
+    border-radius: 11px;
+    padding: 11px;
+    font-weight: 700;
     font-size: 14px;
+    cursor: pointer;
+    margin-bottom: 14px;
+    box-shadow: 0 6px 16px rgba(124, 140, 255, 0.3);
+  }
+  #conversations { overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 2px; }
+  .conv-item {
+    padding: 10px 10px;
+    border-radius: 9px;
+    cursor: pointer;
+    font-size: 13.5px;
     color: var(--muted);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    border: 1px solid transparent;
   }
-  .conv-item:hover, .conv-item.active { background: #1f2430; color: var(--text); }
-  #main {
+  .conv-item:hover { background: var(--panel-2); color: var(--text); }
+  .conv-item.active { background: var(--panel-2); color: var(--text); border-color: var(--border); }
+  .sidebar-footer {
+    border-top: 1px solid var(--border-soft);
+    padding-top: 12px;
+    margin-top: 12px;
+    font-size: 11.5px;
+    line-height: 1.5;
+    color: var(--muted-2);
+    padding-left: 6px; padding-right: 6px;
+  }
+  .sidebar-footer strong { color: var(--muted); font-weight: 600; }
+
+  /* ---------- Main / chat ---------- */
+  #main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  #main-header {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 14px 26px;
+    border-bottom: 1px solid var(--border-soft);
+    background: rgba(11, 14, 20, 0.55);
+    backdrop-filter: blur(8px);
+  }
+  .header-title { font-size: 15px; font-weight: 700; }
+  .header-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .pill {
+    font-size: 11.5px; font-weight: 600; color: var(--muted);
+    border: 1px solid var(--border); border-radius: 99px; padding: 6px 12px;
+    background: var(--panel); white-space: nowrap;
+    display: inline-flex; align-items: center; gap: 7px;
+  }
+  #empty-state {
     flex: 1;
-    display: flex;
-    flex-direction: column;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 32px 24px; gap: 0;
   }
+  .empty-mark {
+    width: 72px; height: 72px; border-radius: 22px; background: var(--gradient);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 36px; font-weight: 800; color: #0b0e14;
+    box-shadow: 0 14px 34px rgba(124, 140, 255, 0.4);
+    margin-bottom: 22px;
+  }
+  #empty-state h2 { font-size: 27px; margin: 0 0 10px; letter-spacing: -.3px; }
+  #empty-state h2 .grad { background: var(--gradient); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  #empty-state p { color: var(--muted); font-size: 14.5px; line-height: 1.6; max-width: 440px; margin: 0 0 26px; }
+  .prompt-chips { display: flex; flex-wrap: wrap; gap: 9px; justify-content: center; max-width: 560px; }
+  .prompt-chip {
+    background: var(--panel); border: 1px solid var(--border); color: var(--text);
+    border-radius: 99px; padding: 9px 15px; font-size: 13px; cursor: pointer;
+  }
+  .prompt-chip:hover { border-color: var(--accent); box-shadow: 0 4px 14px rgba(124, 140, 255, 0.25); }
   #messages {
     flex: 1;
     overflow-y: auto;
-    padding: 24px;
+    padding: 26px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 18px;
+    width: 100%;
+    max-width: 880px;
+    margin: 0 auto;
   }
+  #messages:empty { display: none; }
   .msg {
-    max-width: 720px;
-    padding: 12px 16px;
-    border-radius: 10px;
-    line-height: 1.5;
+    max-width: 76%;
+    padding: 13px 17px;
+    border-radius: var(--radius);
+    line-height: 1.6;
+    font-size: 14.5px;
     white-space: pre-wrap;
     word-wrap: break-word;
+    box-shadow: var(--shadow);
+    animation: msg-in .22s ease both;
   }
-  .msg.user { align-self: flex-end; background: var(--user-bubble); }
-  .msg.assistant { align-self: flex-start; background: var(--assistant-bubble); border: 1px solid var(--border); }
+  @keyframes msg-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .msg::before {
+    display: block;
+    font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
+    margin-bottom: 6px; opacity: .75;
+  }
+  .msg.user { align-self: flex-end; background: var(--user-bubble); color: #fff; border-bottom-right-radius: 5px; }
+  .msg.user::before { content: "You"; }
+  .msg.assistant { align-self: flex-start; background: var(--assistant-bubble); border: 1px solid var(--border); border-bottom-left-radius: 5px; }
+  .msg.assistant::before { content: "Sim"; color: var(--accent-2); }
   #input-area {
-    border-top: 1px solid var(--border);
-    padding: 16px 24px;
-    display: flex;
-    gap: 10px;
+    border-top: 1px solid var(--border-soft);
+    padding: 16px 26px 12px;
+    width: 100%; max-width: 880px; margin: 0 auto;
   }
-  #input {
-    flex: 1;
+  .composer {
+    display: flex; gap: 10px; align-items: flex-end;
     background: var(--panel);
     border: 1px solid var(--border);
-    color: var(--text);
-    border-radius: 8px;
-    padding: 12px;
-    resize: none;
-    font-size: 14px;
-    font-family: inherit;
+    border-radius: var(--radius);
+    padding: 8px;
+    box-shadow: var(--shadow);
   }
-  #send {
-    background: var(--accent);
-    border: none;
-    color: #0f1115;
-    font-weight: 600;
-    border-radius: 8px;
-    padding: 0 20px;
-    cursor: pointer;
-  }
-  #send:disabled { opacity: 0.5; cursor: not-allowed; }
-  code { background: #1f2430; padding: 2px 5px; border-radius: 4px; font-size: 13px; }
-  .nav-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
-  .nav-tab {
+  .composer:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(124, 140, 255, 0.18), var(--shadow); }
+  #input {
     flex: 1;
     background: transparent;
-    border: 1px solid var(--border);
-    color: var(--muted);
-    border-radius: 6px;
-    padding: 8px;
-    cursor: pointer;
-    font-size: 13px;
+    border: none;
+    color: var(--text);
+    padding: 9px 10px;
+    resize: none;
+    font-size: 14.5px;
+    font-family: inherit;
+    line-height: 1.5;
+    max-height: 140px;
   }
-  .nav-tab.active { background: var(--accent); color: #0f1115; border-color: var(--accent); font-weight: 600; }
-  #maya-view { display: none; flex: 1; flex-direction: column; padding: 24px; overflow-y: auto; }
-  #maya-view h2 { color: var(--accent); margin-top: 0; }
-  #maya-view label { display: block; margin: 16px 0 6px; font-size: 13px; color: var(--muted); }
+  #input:focus-visible { outline: none; }
+  #input::placeholder { color: var(--muted-2); }
+  #send {
+    background: var(--gradient);
+    border: none;
+    color: #0b0e14;
+    font-weight: 700;
+    font-size: 14px;
+    border-radius: 11px;
+    padding: 11px 20px;
+    cursor: pointer;
+    box-shadow: 0 5px 14px rgba(124, 140, 255, 0.3);
+  }
+  #send:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
+  .composer-hint { text-align: center; font-size: 11.5px; color: var(--muted-2); margin-top: 9px; }
+  code { background: #232a3f; padding: 2px 6px; border-radius: 5px; font-size: 13px; }
+
+  /* ---------- Maya ---------- */
+  #maya-view { display: none; flex: 1; flex-direction: column; padding: 30px 26px; overflow-y: auto; }
+  .maya-card { width: 100%; max-width: 760px; margin: 0 auto; }
+  #maya-view h2 { margin: 0 0 8px; font-size: 24px; letter-spacing: -.3px; }
+  #maya-view h2 .grad { background: var(--gradient); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .maya-intro { color: var(--muted); font-size: 14.5px; line-height: 1.6; margin: 0; }
+  #maya-view label { display: block; margin: 20px 0 7px; font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
   #maya-view textarea, #maya-view input {
     width: 100%;
     background: var(--panel);
     border: 1px solid var(--border);
     color: var(--text);
-    border-radius: 8px;
-    padding: 12px;
-    font-size: 14px;
+    border-radius: 12px;
+    padding: 13px 14px;
+    font-size: 14.5px;
     font-family: inherit;
+    line-height: 1.5;
   }
-  #maya-view textarea { min-height: 160px; resize: vertical; }
+  #maya-view textarea:focus, #maya-view input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(124, 140, 255, 0.18); outline: none; }
+  #maya-view textarea { min-height: 170px; resize: vertical; }
   #maya-generate {
-    margin-top: 16px;
-    background: var(--accent);
-    color: #0f1115;
+    margin-top: 20px;
+    background: var(--gradient);
+    color: #0b0e14;
     border: none;
-    border-radius: 8px;
-    padding: 12px 20px;
-    font-weight: 600;
+    border-radius: 11px;
+    padding: 13px 22px;
+    font-weight: 700;
+    font-size: 14.5px;
     cursor: pointer;
     align-self: flex-start;
+    box-shadow: 0 6px 16px rgba(124, 140, 255, 0.3);
   }
-  #maya-generate:disabled { opacity: 0.5; cursor: not-allowed; }
+  #maya-generate:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
   #maya-result {
-    margin-top: 20px;
+    margin-top: 24px;
     background: var(--assistant-bubble);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 16px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px;
     white-space: pre-wrap;
-    line-height: 1.6;
+    line-height: 1.7;
+    font-size: 14.5px;
     display: none;
   }
   #maya-copy {
-    margin-top: 10px;
-    background: transparent;
+    margin-top: 12px;
+    background: var(--panel);
     border: 1px solid var(--border);
     color: var(--text);
-    border-radius: 6px;
-    padding: 8px 14px;
+    border-radius: 9px;
+    padding: 9px 16px;
+    font-size: 13.5px;
+    font-weight: 600;
     cursor: pointer;
     display: none;
+  }
+  #maya-copy:hover { border-color: var(--accent); }
+
+  /* ---------- Small screens ---------- */
+  @media (max-width: 720px) {
+    #sidebar { width: 76px; padding: 14px 9px 10px; }
+    .brand { justify-content: center; padding-bottom: 14px; }
+    .brand-text, .sidebar-footer, #conversations { display: none; }
+    .nav-tabs { flex-direction: column; }
+    #new-chat { font-size: 0; padding: 11px 0; }
+    #new-chat::after { content: "+"; font-size: 18px; }
+    #messages, #input-area { padding-left: 14px; padding-right: 14px; }
+    .msg { max-width: 88%; }
+    .pill { display: none; }
+    #empty-state h2 { font-size: 22px; }
   }
 </style>
 </head>
 <body>
   <div id="sidebar">
-    <h1>Sim</h1>
+    <div class="brand">
+      <div class="brand-mark">S</div>
+      <div class="brand-text">
+        <div class="brand-name">SimAI</div>
+        <div class="brand-sub"><span class="status-dot"></span> Local · Gemma 4 E4B</div>
+      </div>
+    </div>
     <div class="nav-tabs">
       <button class="nav-tab active" id="tab-chat">Chat</button>
       <button class="nav-tab" id="tab-maya">Maya</button>
     </div>
     <button id="new-chat">+ New chat</button>
     <div id="conversations"></div>
+    <div class="sidebar-footer">
+      <strong>100% local.</strong><br />
+      Your chats never leave this machine — no cloud API, no API key.
+    </div>
   </div>
   <div id="main">
+    <div id="main-header">
+      <div>
+        <div class="header-title">Chat</div>
+        <div class="header-sub">Powered by Gemma 4, running on your own computer</div>
+      </div>
+      <span class="pill"><span class="status-dot"></span> Private &amp; on-device</span>
+    </div>
+    <div id="empty-state">
+      <div class="empty-mark">S</div>
+      <h2>Hi, I'm <span class="grad">Sim</span></h2>
+      <p>Your personal AI assistant for chat and code — running entirely on your machine with Gemma 4. Ask me anything, or start with one of these:</p>
+      <div class="prompt-chips">
+        <button class="prompt-chip" data-prompt="Help me debug a Python error step by step">Help me debug Python</button>
+        <button class="prompt-chip" data-prompt="Explain Docker in simple terms, with an example">Explain Docker simply</button>
+        <button class="prompt-chip" data-prompt="Draft a professional email asking to reschedule a meeting">Draft a professional email</button>
+        <button class="prompt-chip" data-prompt="Give me a study plan for learning SQL this week">Make me a study plan</button>
+      </div>
+    </div>
     <div id="messages"></div>
     <div id="input-area">
-      <textarea id="input" rows="1" placeholder="Message Sim..."></textarea>
-      <button id="send">Send</button>
+      <div class="composer">
+        <textarea id="input" rows="1" placeholder="Message Sim..."></textarea>
+        <button id="send">Send</button>
+      </div>
+      <div class="composer-hint">Enter to send · Shift + Enter for a new line</div>
     </div>
   </div>
   <div id="maya-view">
-    <h2>Maya — Cover Letter Assistant</h2>
-    <p style="color: var(--muted); font-size: 14px;">Paste a job posting below. Maya drafts a cover letter tailored to Simeon's resume.</p>
-    <label for="maya-company">Company name (optional)</label>
-    <input id="maya-company" type="text" placeholder="e.g. Microsoft" />
-    <label for="maya-posting">Job posting</label>
-    <textarea id="maya-posting" placeholder="Paste the full job posting here..."></textarea>
-    <button id="maya-generate">Generate cover letter</button>
-    <div id="maya-result"></div>
-    <button id="maya-copy">Copy to clipboard</button>
+    <div class="maya-card">
+      <h2>Maya — <span class="grad">Cover Letter Assistant</span></h2>
+      <p class="maya-intro">Paste a job posting below. Maya drafts a cover letter tailored to Simeon's resume — grounded only in his real experience.</p>
+      <label for="maya-company">Company name (optional)</label>
+      <input id="maya-company" type="text" placeholder="e.g. Microsoft" />
+      <label for="maya-posting">Job posting</label>
+      <textarea id="maya-posting" placeholder="Paste the full job posting here..."></textarea>
+      <button id="maya-generate">Generate cover letter</button>
+      <div id="maya-result"></div>
+      <button id="maya-copy">Copy to clipboard</button>
+    </div>
   </div>
 
 <script>
@@ -207,8 +378,17 @@ const messagesEl = document.getElementById("messages");
 const inputEl = document.getElementById("input");
 const sendBtn = document.getElementById("send");
 const convListEl = document.getElementById("conversations");
+const emptyStateEl = document.getElementById("empty-state");
+
+function hideEmptyState() {
+  if (emptyStateEl) emptyStateEl.style.display = "none";
+}
+function showEmptyState() {
+  if (emptyStateEl) emptyStateEl.style.display = "flex";
+}
 
 function addMessage(role, text) {
+  hideEmptyState();
   const div = document.createElement("div");
   div.className = "msg " + role;
   div.textContent = text;
@@ -233,8 +413,10 @@ async function loadConversations() {
 async function openConversation(id) {
   currentConversationId = id;
   messagesEl.innerHTML = "";
+  hideEmptyState();
   const res = await fetch(`${API}/api/conversations/${id}/messages`);
   const msgs = await res.json();
+  if (!msgs.length) showEmptyState();
   msgs.forEach(m => addMessage(m.role, m.content));
   loadConversations();
 }
@@ -242,8 +424,18 @@ async function openConversation(id) {
 document.getElementById("new-chat").onclick = () => {
   currentConversationId = null;
   messagesEl.innerHTML = "";
+  showEmptyState();
   loadConversations();
+  inputEl.focus();
 };
+
+// Starter prompt chips: fill the composer, ready to send
+document.querySelectorAll(".prompt-chip").forEach(chip => {
+  chip.onclick = () => {
+    inputEl.value = chip.dataset.prompt || chip.textContent;
+    inputEl.focus();
+  };
+});
 
 async function sendMessage() {
   const text = inputEl.value.trim();
@@ -267,10 +459,43 @@ async function sendMessage() {
       return;
     }
 
-    const data = await res.json();
-    currentConversationId = data.conversation_id;
-    assistantDiv.textContent = data.content;
-    messagesEl.scrollTop = messagesEl.scrollHeight;
+    // The chat endpoint streams NDJSON, one JSON object per line:
+    //   {"type":"meta",  "conversation_id": ...}
+    //   {"type":"token", "content": "..."}        (as tokens arrive)
+    //   {"type":"done",  "conversation_id": ..., "content": "<full reply>"}
+    //   {"type":"error", "detail": "..."}
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let started = false;
+
+    const handleLine = (line) => {
+      if (!line.trim()) return;
+      let evt;
+      try { evt = JSON.parse(line); } catch { return; }
+      if (evt.type === "meta" || evt.type === "done") {
+        if (evt.conversation_id) currentConversationId = evt.conversation_id;
+      } else if (evt.type === "token") {
+        if (!started) { assistantDiv.textContent = ""; started = true; }
+        assistantDiv.textContent += evt.content;
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      } else if (evt.type === "error") {
+        assistantDiv.textContent = "Error: " + (evt.detail || "model error");
+      }
+    };
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop();
+      lines.forEach(handleLine);
+    }
+    if (buffer.trim()) handleLine(buffer);
+    if (!started && assistantDiv.textContent === "Thinking...") {
+      assistantDiv.textContent = "";
+    }
     loadConversations();
   } catch (err) {
     assistantDiv.textContent = "Error: " + err.message;
