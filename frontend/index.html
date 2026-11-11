@@ -371,7 +371,10 @@
   </div>
 
 <script>
-const API = "http://localhost:8000";
+// Same-origin API: nginx (see nginx.conf) proxies /api/ to backend:8000,
+// so this works on localhost:3000 at home AND from a remote browser
+// on Oracle Cloud — no hardcoded localhost:8000.
+const API = "";
 let currentConversationId = null;
 
 const messagesEl = document.getElementById("messages");
